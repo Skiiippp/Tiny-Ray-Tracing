@@ -232,23 +232,28 @@ int hit_sphere(vec3 center, int radius, ray3 r){
 
 vec3 ray_color(ray3 r){
     int t = hit_sphere(sphere_position, 1<<sphere_pow_2, r);
-
+    /*
     if(t <= 0){
         vec3 background = {135, 206, 235};
         return background;
     } else {
         vec3 circle = {255, 0, 0};
         return circle;
-    }
+    }*/
 
 
-    /*
+
     int shift = 10;
+    int scaling_factor = sphere_pow_2 + shift;
 
     vec3 r_at_t = vec3_sum(scale_vec3(camera, 1<<shift, 0), scale_vec3(r.d, t, 0));
-    vec3 n = vec3_diff(r_at_t, scale_vec3(sphere_position, 1<<shift, 0));
 
-    int scaling_factor = sphere_pow_2 + shift;
+    asm ( "sw %0, 0(%1)"
+            :
+            : "r"(r_at_t.x), r(0x7777)
+    );
+
+    /*vec3 n = vec3_diff(r_at_t, scale_vec3(sphere_position, 1<<shift, 0));
 
     int cr = (-n.x + (1<<scaling_factor))>>(scaling_factor - 7);
     int cg = (n.y + (1<<scaling_factor))>>(scaling_factor - 7);
@@ -256,8 +261,8 @@ vec3 ray_color(ray3 r){
 
     vec3 color = {(cr>>5)<<5, (cg>>5)<<5, (cb>>6)<<6};
 
-    return color;
-    */
+    return color;*/
+
 }
 
 
