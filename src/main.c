@@ -36,9 +36,9 @@ volatile int * const VG_COLOR = (int *)0x11000140;
 
 //Camera params
 
-vec3 camera          = {0    , -100    , 0};
+vec3 camera          = {0    ,-100    ,0};
 
-vec3 ray_dir         = { 0 ,    0,     , 0};
+vec3 ray_dir         = {0    ,0       ,0};
 
 //Sphere params
 
@@ -266,21 +266,22 @@ vec3 ray_color(){
     int shift = 10;
 
     vec3 scaled_camera = scale_vec3(camera, 1<<shift);
-
-    vec3 scaled_dir = scale_vec3(ray_dir, t);    // ERROR OCCURS HERE!!!! -- likely accessing nested structs with r.d
-    return circle;
-
-    vec3 r_at_t = vec3_sum(scaled_camera, scaled_dir); 
-
+    vec3 scaled_dir = scale_vec3(ray_dir, t);    
+    vec3 r_at_t = vec3_sum(scaled_camera, scaled_dir);
     vec3 n = vec3_diff(r_at_t, scale_vec3(sphere_position, 1<<shift));
 
     int scaling_factor = sphere_pow_2 + shift;
 
+    // ERROR OCCURS HERE!!!! -- likely cr, cg, cb
     int cr = (n.x + (1<<scaling_factor))>>(scaling_factor - 7);
     int cg = (n.y + (1<<scaling_factor))>>(scaling_factor - 7);
     int cb = (n.z + (1<<scaling_factor))>>(scaling_factor - 7);
 
-    vec3 color = {(cr>>5)<<5, (cg>>5)<<5, (cb>>6)<<6};
+    //vec3 color = {(cr>>5)<<5, (cg>>5)<<5, (cb>>6)<<6};
+
+    vec3 color = {cr, cg, cb};
+
+    //return circle; 
 
     return color;
     
@@ -304,7 +305,9 @@ void main() {
                 int forward = (image_width);
 
                 //Ray Dir is direction coming out of camera position
-                ray_dir = {horiz, forward, vert};
+                ray_dir.x = horiz;
+                ray_dir.y = forward;
+                ray_dir.z = vert;
                 
                 vec3 color = ray_color();
 
@@ -313,8 +316,8 @@ void main() {
                 //if(color.x != 135)
                 //printf("%d %d %d\n", color.x, color.y, color.z);
 
-                /*
-                if(color.x == 135 && color.y == 206 && color.z == 235){
+                
+                /*if(color.x == 135 && color.y == 206 && color.z == 235){
                     printf(".");
                 } else {
                     printf("*");
