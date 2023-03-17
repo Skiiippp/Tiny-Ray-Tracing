@@ -269,38 +269,43 @@ void main() {
     //Render
 
 	//printf("P3\n80 60\n255\n");
+    
+    while(1){
+        for(int j = image_height - 1; j >= 0; --j){   //run for each column
+            for(int i = 0; i < image_width; ++i){     //run for each row
+                int horiz   = (-(image_width>>1) + i);
+                int vert    = (-(image_height>>1) + j);
+                int forward = (image_width);
 
-    for(int j = image_height - 1; j >= 0; --j){   //run for each column
-        for(int i = 0; i < image_width; ++i){     //run for each row
-            int horiz   = (-(image_width>>1) + i);
-            int vert    = (-(image_height>>1) + j);
-            int forward = (image_width);
+                //Ray Dir is direction coming out of camera position
+                vec3 ray_dir = {horiz, forward, vert};
+                ray3 pixel_ray = {camera, ray_dir};
 
-            //Ray Dir is direction coming out of camera position
-            vec3 ray_dir = {horiz, forward, vert};
-            ray3 pixel_ray = {camera, ray_dir};
+                vec3 color = ray_color(pixel_ray);
 
-            vec3 color = ray_color(pixel_ray);
-			
-			//if(color.x != 135)
-			//printf("%d %d %d\n", color.x, color.y, color.z);
+                write_to_vga(i, image_height - 1 - j, color);
 
-            write_to_vga(i, image_height - 1 - j, color);
+                //if(color.x != 135)
+                //printf("%d %d %d\n", color.x, color.y, color.z);
 
-			
-			// 135, 206, 235
-            /*
-			if(color.x == 135 && color.y == 206 && color.z == 235){
-				printf(".");
-			} else {
-				printf("*");
-			}*/
-			
+                /*
+                if(color.x == 135 && color.y == 206 && color.z == 235){
+                    printf(".");
+                } else {
+                    printf("*");
+                }*/
+            
+            }
+            //printf("\n");
         }
-		//printf("\n");
-
+        int movement = 40;
+        int* cameraY = &(camera.y);
+        if(-100 < *cameraY || -300 > *cameraY){
+            movement = -1 * movement;
+            //printf("balls\n"); tf you comment this for?
+        }
+        *cameraY += movement;
+        
     }
 
-	//Trap
-	while(1);
 }
