@@ -18,7 +18,7 @@
  *  ------------------------------------------------------------------------  *
  */
 
-//#include <stdio.h>
+#include <stdio.h>
 
 //Image params
 
@@ -157,21 +157,24 @@ void main() {
                 int rdy = forward;
                 int rdz = vert;
 
-                int ocx = camx;
-                int ocy = camy;
-                int ocz = camz;
+                int ocx = camx - 0;
+                int ocy = camy - 0;
+                int ocz = camz - 0;
 
-                int a = mult(rdx, rdx);
+                int a = 0;
+                a += mult(rdx, rdx);
                 a += mult(rdy, rdy);
                 a += mult(rdz, rdz);
 
-                int half_b = mult(ocx, rdx);
+                int half_b = 0;
+                half_b += mult(ocx, rdx);
                 half_b += mult(ocy, rdy);
                 half_b += mult(ocz, rdz);
 
                 int radsq = mult(radius, radius);
 
-                int dotoc = mult(ocx, ocx);
+                int dotoc = 0;
+                dotoc += mult(ocx, ocx);
                 dotoc += mult(ocy, ocy);
                 dotoc += mult(ocz, ocz);
 
@@ -228,12 +231,12 @@ void main() {
                     int cg = (n_z + (1 << scaling_factor)) >> (scaling_factor - 7);
                     int cb = (-n_y + (1 << scaling_factor)) >> (scaling_factor - 7);
 
-                    int r = divide(cr, 32, 0) << 5;
-                    int g = divide(cg, 32, 0) << 2;
-                    int b = divide(cb, 64, 0);
+                    int r = (cr>>5)<<5;
+                    int g = (cg>>5)<<2;
+                    int b = (cb>>6);
                     int write_color = r | g | b;
 
-                    //printf("%d %d %d\n", (cr>>5)<<5, (cg>>5)<<5, (cb>>6)<<6);
+                    //printf("%d %d %d\n", r, g<<3, b<<6);
 
 
                     *VG_ADDR = (y << 7) | x;  		// store into the address IO register
@@ -252,7 +255,7 @@ void main() {
         *cameraY += movement;
 
         //while(1);
-        break;
+        //break;
 
     }
 
