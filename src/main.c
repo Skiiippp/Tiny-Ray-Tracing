@@ -1,9 +1,9 @@
 /*
  *  ------------------------------------------------------------------------  *
  *  Engineer: James Gruber, Daniel Brathwaite
- *  Design Name: OTTER Raytracer
+ *  Design Name: RISCV Raytracer
  *
- *  Description: A raytracing program designed to output graphics to VGA from the OTTER MCU
+ *  Description: A raytracing program designed to output graphics to VGA
  *
  *  Additional Comments:
  *
@@ -36,12 +36,12 @@ typedef struct ray3{
 const int image_width = 80;
 const int image_height = 60;
 
-volatile int * const VG_ADDR = (int *)0x11000120;
-volatile int * const VG_COLOR = (int *)0x11000140;
+volatile int * const VG_ADDR = (int *)0x11100000;
+volatile int * const VG_COLOR = (int *)0x11140000;
 
 //Camera params
 
-vec3 camera          = {0    , -100    , 0};
+vec3 camera          = {0    , -200    , 0};
 
 //Sphere params
 
@@ -49,28 +49,14 @@ vec3 sphere_position = {0    , 0    , 0};
 
 int sphere_pow_2 = 5;
 
-int divide(int a, int b, int fraction_bits);
 
 // draws a single pixel
 static void write_to_vga(int x, int y, vec3 color) {
-    //int store_color = ((color.x>>5)<<5) | ((color.y>>5)<<2) | (color.z>>6);
-    //*VG_COLOR = 0;//store_color;  // store into the color IO register, which triggers 
-    								
-	// 8-bit color, RRR,GGG,BB, so R & G must be scaled by 32, B by 64
-	char r = divide(color.x, 32, 0) << 5;
-	char g = divide(color.y, 32, 0) << 2;
-	char b = divide(color.z, 64, 0);
-	char color_out = r | g | b;
-	
-	// For debugging purposes
-	if(color_out != 0x9b){	// Not background
-		color_out = 0xe0;
-	}
-
-	*VG_ADDR = (y << 7) | x;  		// store into the address IO register
-	*VG_COLOR = color_out;
-
-	
+    int store_color = ((color.x>>5)<<5) | ((color.y>>5)<<2) | (color.z>>6);
+    *VG_ADDR = (y << 7) | x;  // store into the address IO register
+    *VG_COLOR = store_color;  // store into the color IO register, which triggers
+    // the actual write to the framebuffer at the address
+    // previously stored in the address IO register
 }
 
 
@@ -161,7 +147,7 @@ static vec3 scale_vec3(vec3 a, int scale, int scale_fraction_bits){
  * Returns (a/b)<<fraction_bits
  * Shifting allows for more precision
  */
-int divide(int a, int b, int fraction_bits){
+static int divide(int a, int b, int fraction_bits){
 
     if (a < 0 && b < 0){
         int temp = a;
@@ -232,49 +218,46 @@ int hit_sphere(vec3 center, int radius, ray3 r){
 
 vec3 ray_color(ray3 r){
     int t = hit_sphere(sphere_position, 1<<sphere_pow_2, r);
-    /*
+
     if(t <= 0){
         vec3 background = {135, 206, 235};
         return background;
-    } else {
-        vec3 circle = {255, 0, 0};
-        return circle;
-    }*/
-
-
+    }
 
     int shift = 10;
+
+    vec3 scaled_camera = scale_vec3(camera, 1<<shift, 0);
+    vec3 scaled_dir = scale_vec3(r.d, t, 0);
+
+    vec3 r_at_t = vec3_sum(scaled_camera, scaled_dir);
+
+    vec3 scaled_sphere_pos = scale_vec3(sphere_position, 1<<shift, 0);
+    vec3 n = vec3_diff(r_at_t, scaled_sphere_pos);
+
     int scaling_factor = sphere_pow_2 + shift;
 
-    vec3 r_at_t = vec3_sum(scale_vec3(camera, 1<<shift, 0), scale_vec3(r.d, t, 0));
+    int ls = 1<<scaling_factor;
+    int ss = scaling_factor - 7;
 
-    asm ( "sw %0, 0(%1)"
-            :
-            : "r"(r_at_t.x), r(0x7777)
-    );
-
-    /*vec3 n = vec3_diff(r_at_t, scale_vec3(sphere_position, 1<<shift, 0));
-
-    int cr = (-n.x + (1<<scaling_factor))>>(scaling_factor - 7);
-    int cg = (n.y + (1<<scaling_factor))>>(scaling_factor - 7);
-    int cb = (-n.z + (1<<scaling_factor))>>(scaling_factor - 7);
+    int cr = n.x + ls;
+    cr = cr >> ss;
+    int cg = n.y + ls;
+    cg = cg >> ss;
+    int cb = n.z + ls;
+    cb = cb >> ss;
 
     vec3 color = {(cr>>5)<<5, (cg>>5)<<5, (cb>>6)<<6};
-
-    return color;*/
-
+    return color;
 }
 
 
 
-void main() {
+int main() {
 
     int sphere_r = 1<<sphere_pow_2;
 
     //Render
-
-	//printf("P3\n80 60\n255\n");
-
+    //printf("P3\n80 60\n255\n");
     for(int j = image_height - 1; j >= 0; --j){   //run for each column
         for(int i = 0; i < image_width; ++i){     //run for each row
             int horiz   = (-(image_width>>1) + i);
@@ -286,26 +269,20 @@ void main() {
             ray3 pixel_ray = {camera, ray_dir};
 
             vec3 color = ray_color(pixel_ray);
-			
-			//if(color.x != 135)
-			//printf("%d %d %d\n", color.x, color.y, color.z);
 
             write_to_vga(i, image_height - 1 - j, color);
 
-			
-			// 135, 206, 235
-            /*
-			if(color.x == 135 && color.y == 206 && color.z == 235){
-				printf(".");
-			} else {
-				printf("*");
-			}*/
-			
+            //printf("%d %d %d\n", color.x, color.y, color.z);
         }
-		//printf("\n");
+        //printf("\n");
 
     }
-
-	//Trap
-	while(1);
+    return 0;
 }
+
+
+
+
+
+
+
