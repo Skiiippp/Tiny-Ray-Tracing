@@ -82,7 +82,7 @@ static int mult(int a, int b){
  * Returns (a/b)<<fraction_bits
  * Shifting allows for more precision
  */
-int divide(int a, int b, int fraction_bits){
+static int divide(int a, int b, int fraction_bits){
 
     if (a < 0 && b < 0){
         int temp = a;
@@ -145,7 +145,7 @@ void main() {
     //printf("P3\n80 60\n255\n");
     int movement = 50;
     while(1){
-        printf("P3\n80 60\n255\n");
+        //printf("P3\n80 60\n255\n");
         for(int j = image_height - 1; j >= 0; --j){   //run for each column
             for(int i = 0; i < image_width; ++i) {     //run for each row
                 int horiz = (-(image_width >> 1) + i);
@@ -157,24 +157,21 @@ void main() {
                 int rdy = forward;
                 int rdz = vert;
 
-                int ocx = camx - 0;
-                int ocy = camy - 0;
-                int ocz = camz - 0;
+                int ocx = camx;
+                int ocy = camy;
+                int ocz = camz;
 
-                int a = 0;
-                a += mult(rdx, rdx);
+                int a = mult(rdx, rdx);
                 a += mult(rdy, rdy);
                 a += mult(rdz, rdz);
 
-                int half_b = 0;
-                half_b += mult(ocx, rdx);
+                int half_b = mult(ocx, rdx);
                 half_b += mult(ocy, rdy);
                 half_b += mult(ocz, rdz);
 
                 int radsq = mult(radius, radius);
 
-                int dotoc = 0;
-                dotoc += mult(ocx, ocx);
+                int dotoc = mult(ocx, ocx);
                 dotoc += mult(ocy, ocy);
                 dotoc += mult(ocz, ocz);
 
@@ -197,9 +194,9 @@ void main() {
                 int y = image_height - 1 - j;
 
                 if (t <= 0) {
-                    //*VG_ADDR = (y << 7) | x;  		// store into the address IO register
-                    //*VG_COLOR = 155;         // store color val POOP
-                    printf("135 206 235\n");
+                    *VG_ADDR = (y << 7) | x;  		// store into the address IO register
+                    *VG_COLOR = 155;         // store color val POOP
+                    //printf("135 206 235\n");
                 }else{
 
                     int shift = 10;
@@ -227,20 +224,20 @@ void main() {
                     int scaling_factor = sphere_pow_2 + shift;
 
                     // ERROR OCCURS HERE!!!! -- likely cr, cg, cb
-                    int cr = (n_x + (1 << scaling_factor)) >> (scaling_factor - 7);
-                    int cg = (n_y + (1 << scaling_factor)) >> (scaling_factor - 7);
-                    int cb = (n_z + (1 << scaling_factor)) >> (scaling_factor - 7);
+                    int cr = (-n_x + (1 << scaling_factor)) >> (scaling_factor - 7);
+                    int cg = (n_z + (1 << scaling_factor)) >> (scaling_factor - 7);
+                    int cb = (-n_y + (1 << scaling_factor)) >> (scaling_factor - 7);
 
                     int r = divide(cr, 32, 0) << 5;
                     int g = divide(cg, 32, 0) << 2;
                     int b = divide(cb, 64, 0);
                     int write_color = r | g | b;
 
-                    printf("%d %d %d\n", r, g<<3, b<<5);
+                    //printf("%d %d %d\n", (cr>>5)<<5, (cg>>5)<<5, (cb>>6)<<6);
 
 
-                    //*VG_ADDR = (y << 7) | x;  		// store into the address IO register
-                    //*VG_COLOR = write_color;         // store color val POOP
+                    *VG_ADDR = (y << 7) | x;  		// store into the address IO register
+                    *VG_COLOR = write_color;         // store color val POOP
                     //---------------------------------------------------------------------
                 }
 
