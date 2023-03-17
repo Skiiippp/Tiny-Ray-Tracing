@@ -257,14 +257,14 @@ int hit_sphere(vec3 center, int radius){
     }
 }
 
-color ray_color(){
+vec3 ray_color(){
     int t = hit_sphere(sphere_position, 1<<sphere_pow_2);
 
     if(t <= 0){
         vec3 background = {135, 206, 235};
         return background;
     } 
-    vec3 circle = {255, 0, 0};
+    vec3 temp = {255, 0, 0};
     
     int shift = 10;
 
@@ -276,15 +276,18 @@ color ray_color(){
     int scaling_factor = sphere_pow_2 + shift;
 
     // ERROR OCCURS HERE!!!! -- likely cr, cg, cb
-    cr = (n.x + (1<<scaling_factor))>>(scaling_factor - 7);
-    cg = (n.y + (1<<scaling_factor))>>(scaling_factor - 7);
-    cb = (n.z + (1<<scaling_factor))>>(scaling_factor - 7);
+    int cr = (n.x + (1<<scaling_factor))>>(scaling_factor - 7);
+    int cg = (n.y + (1<<scaling_factor))>>(scaling_factor - 7);
+    int cb = (n.z + (1<<scaling_factor))>>(scaling_factor - 7);
 
     //vec3 color = {(cr>>5)<<5, (cg>>5)<<5, (cb>>6)<<6};
 
     vec3 color = {cr, cg, cb};
 
-    return circle;
+    temp.x = color.x;
+    //temp.y = color.y; // not working with y for some reason??
+
+    return temp;
 
     //return color;
     
