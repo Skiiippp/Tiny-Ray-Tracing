@@ -269,7 +269,7 @@ void main() {
     //Render
 
 	//printf("P3\n80 60\n255\n");
-    
+    int movement = 40;
     while(1){
         for(int j = image_height - 1; j >= 0; --j){   //run for each column
             for(int i = 0; i < image_width; ++i){     //run for each row
@@ -298,7 +298,6 @@ void main() {
             }
             //printf("\n");
         }
-        int movement = 40;
         int* cameraY = &(camera.y);
         if(-100 < *cameraY || -300 > *cameraY){
             movement = -1 * movement;
