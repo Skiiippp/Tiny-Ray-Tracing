@@ -31,7 +31,7 @@ volatile int * const VG_COLOR = (int *)0x11000140;
 //Camera params
 
 int camx = 0;
-int camy = -100;
+int camy = -200;
 int camz = 0;
 //vec3 camera          = {0    ,-100    ,0};
 
@@ -227,9 +227,9 @@ void main() {
                     int scaling_factor = sphere_pow_2 + shift;
 
                     // ERROR OCCURS HERE!!!! -- likely cr, cg, cb
-                    int cr = (-n_x + (1 << scaling_factor)) >> (scaling_factor - 7);
+                    int cr = (n_x + (1 << scaling_factor)) >> (scaling_factor - 7);
                     int cg = (n_z + (1 << scaling_factor)) >> (scaling_factor - 7);
-                    int cb = (-n_y + (1 << scaling_factor)) >> (scaling_factor - 7);
+                    int cb = (n_y + (1 << scaling_factor)) >> (scaling_factor - 7);
 
                     int r = (cr>>5)<<5;
                     int g = (cg>>5)<<2;
