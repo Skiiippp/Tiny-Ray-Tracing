@@ -197,9 +197,9 @@ void main() {
                 int y = image_height - 1 - j;
 
                 if (t <= 0) {
-                    *VG_ADDR = (y << 7) | x;  		// store into the address IO register
-                    *VG_COLOR = 155;         // store color val POOP
-                    //printf("135 206 235\n");
+                    //*VG_ADDR = (y << 7) | x;  		// store into the address IO register
+                    //*VG_COLOR = 155;         // store color val POOP
+                    printf("135 206 235\n");
                 }else{
 
                     int shift = 10;
@@ -231,16 +231,16 @@ void main() {
                     int cg = (n_y + (1 << scaling_factor)) >> (scaling_factor - 7);
                     int cb = (n_z + (1 << scaling_factor)) >> (scaling_factor - 7);
 
-                    //printf("%d %d %d\n", cr, cg, cb);
-
                     int r = divide(cr, 32, 0) << 5;
                     int g = divide(cg, 32, 0) << 2;
                     int b = divide(cb, 64, 0);
                     int write_color = r | g | b;
 
+                    printf("%d %d %d\n", r, g<<3, b<<5);
 
-                    *VG_ADDR = (y << 7) | x;  		// store into the address IO register
-                    *VG_COLOR = write_color;         // store color val POOP
+
+                    //*VG_ADDR = (y << 7) | x;  		// store into the address IO register
+                    //*VG_COLOR = write_color;         // store color val POOP
                     //---------------------------------------------------------------------
                 }
 
