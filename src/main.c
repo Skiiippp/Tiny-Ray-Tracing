@@ -396,8 +396,13 @@ void main() {
             //printf("\n");
         }
         int* cameraY = &(camera.y);
+<<<<<<< HEAD
         if(-150 < *cameraY || -500 > *cameraY){
             movement = -movement;
+=======
+        if(-100 < *cameraY || -750 > *cameraY){
+            movement = -1 * movement;
+>>>>>>> 609a3bc678e7b7f5700263c5c01e94e59f04b223
             //printf("balls\n"); tf you comment this for?
         }
         *cameraY += movement;
