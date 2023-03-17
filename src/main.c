@@ -62,6 +62,7 @@ static void write_to_vga(int x, int y, vec3 color) {
 	char b = divide(color.z, 64, 0);
 	char color_out = r | g | b;
 	
+    //ABOUT TO WRITE
 	// For debugging purposes
 	if(color_out != 0x9b){	// Not background
 		color_out = 0xe0;
@@ -78,6 +79,8 @@ static void write_to_vga(int x, int y, vec3 color) {
     Performs multiplication on two signed values using addition
 */
 static int mult(int a, int b){
+    if(a == 0 || b == 0){return 0;}
+
     if(a < 0 && b < 0){
         a = -a;
         b = -b;
@@ -95,16 +98,14 @@ static int mult(int a, int b){
 
     int result = 0;
 
-    if(a == 0 || b == 0){return result;}
-    else{
-        while(b > 0){
-            if((b&1) == 1){
-                result = result + a;
-            }
-            b>>=1;
-            a<<=1;
+    while(b > 0){
+        if((b&1) == 1){
+            result = result + a;
         }
+        b = b >> 1;
+        a = a << 1;
     }
+
     return result;
 }
 
@@ -148,10 +149,36 @@ static int vec3_dot(vec3 a, vec3 b){
 }
 
 
-static vec3 scale_vec3(vec3 a, int scale, int scale_fraction_bits){
-    vec3 ret = {mult(a.x, scale)>>scale_fraction_bits,
-                mult(a.y, scale)>>scale_fraction_bits,
-                mult(a.z, scale)>>scale_fraction_bits};
+static vec3 scale_vec3(vec3 a, int scale){
+
+    
+    vec3 ret;
+    ret.x = mult(a.x, scale);
+    ret.y = mult(a.y, scale);
+
+    //vec3 balls = {0,0,0};
+    //return balls;
+
+    ret.z = mult(a.z, scale);
+
+
+    return ret;
+}
+
+
+static vec3 scale_vec3_test(vec3 a, int scale){
+
+    
+    vec3 ret;
+    ret.x = mult(-1, scale);
+    ret.y = mult(80, scale);
+
+    //vec3 balls = {0,0,0};
+    //return balls;
+
+    ret.z = mult(27, scale);
+
+
     return ret;
 }
 
@@ -236,28 +263,32 @@ vec3 ray_color(ray3 r){
     if(t <= 0){
         vec3 background = {135, 206, 235};
         return background;
-    } else {
-        vec3 circle = {255, 0, 0};
-        return circle;
-    }
-
-
-    /*
+    } 
+    vec3 circle = {255, 0, 0};
+    
     int shift = 10;
 
-    vec3 r_at_t = vec3_sum(scale_vec3(camera, 1<<shift, 0), scale_vec3(r.d, t, 0));
-    vec3 n = vec3_diff(r_at_t, scale_vec3(sphere_position, 1<<shift, 0));
+    vec3 scaled_camera = scale_vec3(camera, 1<<shift);
+    
+    vec3 dir;
+    dir = r.d;
+    vec3 scaled_dir = scale_vec3(dir, t);    // ERROR OCCURS HERE!!!! -- likely accessing nested structs with r.d
+    return circle;
+
+    vec3 r_at_t = vec3_sum(scaled_camera, scaled_dir); 
+
+    vec3 n = vec3_diff(r_at_t, scale_vec3(sphere_position, 1<<shift));
 
     int scaling_factor = sphere_pow_2 + shift;
 
-    int cr = (-n.x + (1<<scaling_factor))>>(scaling_factor - 7);
+    int cr = (n.x + (1<<scaling_factor))>>(scaling_factor - 7);
     int cg = (n.y + (1<<scaling_factor))>>(scaling_factor - 7);
-    int cb = (-n.z + (1<<scaling_factor))>>(scaling_factor - 7);
+    int cb = (n.z + (1<<scaling_factor))>>(scaling_factor - 7);
 
     vec3 color = {(cr>>5)<<5, (cg>>5)<<5, (cb>>6)<<6};
 
     return color;
-    */
+    
 }
 
 
@@ -269,7 +300,7 @@ void main() {
     //Render
 
 	//printf("P3\n80 60\n255\n");
-    int movement = 40;
+    int movement = 50;
     while(1){
         for(int j = image_height - 1; j >= 0; --j){   //run for each column
             for(int i = 0; i < image_width; ++i){     //run for each row
@@ -281,6 +312,7 @@ void main() {
                 vec3 ray_dir = {horiz, forward, vert};
                 ray3 pixel_ray = {camera, ray_dir};
 
+                
                 vec3 color = ray_color(pixel_ray);
 
                 write_to_vga(i, image_height - 1 - j, color);
@@ -299,11 +331,13 @@ void main() {
             //printf("\n");
         }
         int* cameraY = &(camera.y);
-        if(-100 < *cameraY || -300 > *cameraY){
+        if(-150 < *cameraY || -500 > *cameraY){
             movement = -1 * movement;
             //printf("balls\n"); tf you comment this for?
         }
         *cameraY += movement;
+
+        //while(1);
         
     }
 
