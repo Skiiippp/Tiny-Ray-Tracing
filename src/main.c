@@ -18,14 +18,7 @@
  *  ------------------------------------------------------------------------  *
  */
 
-#include <stdio.h>
-//#include <assert.h>
-
-typedef struct vec3{
-    int x;
-    int y;
-    int z;
-} vec3;
+//#include <stdio.h>
 
 //Image params
 
@@ -49,33 +42,6 @@ int camz = 0;
 //vec3 sphere_position = {0    , 0    , 0};
 
 //int sphere_pow_2 = 5;
-
-int divide(int a, int b, int fraction_bits);
-
-// draws a single pixel
-static void write_to_vga(int x, int y, vec3 color) {
-    //int store_color = ((color.x>>5)<<5) | ((color.y>>5)<<2) | (color.z>>6);
-    //*VG_COLOR = 0;//store_color;  // store into the color IO register, which triggers
-
-    // 8-bit color, RRR,GGG,BB, so R & G must be scaled by 32, B by 64
-    int r = divide(color.x, 32, 0) << 5;
-    int g = divide(color.y, 32, 0) << 2;
-    int b = divide(color.z, 64, 0);
-    int write_color = r | g | b;
-
-    //printf("%i\n", color_out);
-
-    //ABOUT TO WRITE
-    // For debugging purposes
-    //if(color_out != 0x9b){	// Not background
-    //	color_out = 0xe0;
-    //}
-
-    *VG_ADDR = (y << 7) | x;  		// store into the address IO register
-    *VG_COLOR = write_color;         // store color val POOP
-
-
-}
 
 
 /*
@@ -111,81 +77,6 @@ static int mult(int a, int b){
 
     return result;
 }
-
-/*
-    Computes the vector result of a + b
-*/
-static vec3 vec3_sum(vec3 a, vec3 b){
-    vec3 c;
-
-    c.x = a.x + b.x;
-    c.y = a.y + b.y;
-    c.z = a.z + b.z;
-
-    return c;
-}
-
-/*
-    Computes the vector result of a - b
-*/
-static vec3 vec3_diff(vec3 a, vec3 b){
-    vec3 c;
-
-    c.x = a.x - b.x;
-    c.y = a.y - b.y;
-    c.z = a.z - b.z;
-
-    return c;
-}
-
-/*
-    Computes the dot product of two vec3 structs
-*/
-static int vec3_dot(vec3 a, vec3 b){
-    int c = 0;
-
-    c += mult(a.x, b.x);
-    c += mult(a.y, b.y);
-    c += mult(a.z, b.z);
-
-    return c;
-}
-
-
-static vec3 scale_vec3(vec3 a, int scale){
-
-
-    vec3 ret;
-    ret.x = mult(a.x, scale);
-    ret.y = mult(a.y, scale);
-
-    //vec3 balls = {0,0,0};
-    //return balls;
-
-    ret.z = mult(a.z, scale);
-
-
-    return ret;
-}
-
-
-static vec3 scale_vec3_test(vec3 a, int scale){
-
-
-    vec3 ret;
-    ret.x = mult(-1, scale);
-    ret.y = mult(80, scale);
-
-    //vec3 balls = {0,0,0};
-    //return balls;
-
-    ret.z = mult(27, scale);
-
-
-    return ret;
-}
-
-
 /*
  * Fraction bits are the number of result LSB's denoted as fractional
  * Returns (a/b)<<fraction_bits
@@ -243,60 +134,6 @@ static int square_root(int a){
     return res;
 }
 
-int hit_sphere(vec3 center, int radius){
-    vec3 oc          = vec3_diff(camera, center);
-    int a            = vec3_dot(ray_dir, ray_dir);
-    int half_b       = vec3_dot(oc, ray_dir);
-    int c            = vec3_dot(oc, oc) - mult(radius, radius);
-    int discriminant = mult(half_b, half_b) - mult(a, c);
-
-    if(discriminant > 0){ //hit the sphere
-        int shift = 10;
-
-        int t = divide(-half_b - square_root(discriminant), a, shift);
-        return t;
-    }else{ //did not hit sphere
-        return -1;
-    }
-}
-
-vec3 ray_color(){
-    int t = hit_sphere(sphere_position, 1<<sphere_pow_2);
-
-    if(t <= 0){
-        vec3 background = {135, 206, 235};
-        return background;
-    }
-    vec3 temp = {255, 0, 0};
-
-    int shift = 10;
-
-    vec3 scaled_camera = scale_vec3(camera, 1<<shift);
-    vec3 scaled_dir = scale_vec3(ray_dir, t);
-    vec3 r_at_t = vec3_sum(scaled_camera, scaled_dir);
-    vec3 n = vec3_diff(r_at_t, scale_vec3(sphere_position, 1<<shift));
-
-    int scaling_factor = sphere_pow_2 + shift;
-
-    // ERROR OCCURS HERE!!!! -- likely cr, cg, cb
-    int cr = (n.x + (1<<scaling_factor))>>(scaling_factor - 7);
-    int cg = (n.y + (1<<scaling_factor))>>(scaling_factor - 7);
-    int cb = (n.z + (1<<scaling_factor))>>(scaling_factor - 7);
-
-    //vec3 color = {(cr>>5)<<5, (cg>>5)<<5, (cb>>6)<<6};
-
-    vec3 color = {cr, cg, cb};
-
-    temp.x = color.x;
-    //temp.y = color.y; // not working with y for some reason??
-
-    return temp;
-
-    //return color;
-
-}
-
-
 
 void main() {
 
@@ -308,6 +145,7 @@ void main() {
     //printf("P3\n80 60\n255\n");
     int movement = 50;
     while(1){
+        printf("P3\n80 60\n255\n");
         for(int j = image_height - 1; j >= 0; --j){   //run for each column
             for(int i = 0; i < image_width; ++i) {     //run for each row
                 int horiz = (-(image_width >> 1) + i);
@@ -319,17 +157,30 @@ void main() {
                 int rdy = forward;
                 int rdz = vert;
 
-                itn
+                int ocx = camx - 0;
+                int ocy = camy - 0;
+                int ocz = camz - 0;
 
-                //vec3 color = ray_color();
+                int a = 0;
+                a += mult(rdx, rdx);
+                a += mult(rdy, rdy);
+                a += mult(rdz, rdz);
 
-                //write_to_vga(i, image_height - 1 - j, color);
+                int half_b = 0;
+                half_b += mult(ocx, rdx);
+                half_b += mult(ocy, rdy);
+                half_b += mult(ocz, rdz);
+
+                int radsq = mult(radius, radius);
+
+                int dotoc = 0;
+                dotoc += mult(ocx, ocx);
+                dotoc += mult(ocy, ocy);
+                dotoc += mult(ocz, ocz);
+
+                int c = dotoc - radsq;
 
                 //---------------------------------------------------------------------
-                vec3 oc = vec3_diff(camera, sphere_position);
-                int a = vec3_dot(ray_dir, ray_dir);
-                int half_b = vec3_dot(oc, ray_dir);
-                int c = vec3_dot(oc, oc) - mult(radius, radius);
                 int discriminant = mult(half_b, half_b) - mult(a, c);
 
                 int t;
@@ -346,20 +197,20 @@ void main() {
                 int y = image_height - 1 - j;
 
                 if (t <= 0) {
-                    //printf("background");
                     *VG_ADDR = (y << 7) | x;  		// store into the address IO register
                     *VG_COLOR = 155;         // store color val POOP
+                    //printf("135 206 235\n");
                 }else{
 
                     int shift = 10;
 
                     int sc_cam_x = 0;
-                    int sc_cam_y = mult(camera.y, 1024);
+                    int sc_cam_y = mult(camy, 1024);
                     int sc_cam_z = 0;
 
-                    int sc_dir_x = mult(ray_dir.x, t);
-                    int sc_dir_y = mult(ray_dir.y, t);
-                    int sc_dir_z = mult(ray_dir.z, t);
+                    int sc_dir_x = mult(rdx, t);
+                    int sc_dir_y = mult(rdy, t);
+                    int sc_dir_z = mult(rdz, t);
 
                     int r_at_t_x = sc_cam_x + sc_dir_x;
                     int r_at_t_y = sc_cam_y + sc_dir_y;
@@ -373,12 +224,6 @@ void main() {
                     int n_y = r_at_t_y - sc_sp_y;
                     int n_z = r_at_t_z - 0;
 
-
-                    //vec3 scaled_camera = scale_vec3(camera, 1<<shift);
-                    //vec3 scaled_dir = scale_vec3(ray_dir, t);
-                    //vec3 r_at_t = vec3_sum(scaled_camera, scaled_dir);
-                    //vec3 n = vec3_diff(r_at_t, scale_vec3(sphere_position, 1<<shift));
-
                     int scaling_factor = sphere_pow_2 + shift;
 
                     // ERROR OCCURS HERE!!!! -- likely cr, cg, cb
@@ -386,12 +231,13 @@ void main() {
                     int cg = (n_y + (1 << scaling_factor)) >> (scaling_factor - 7);
                     int cb = (n_z + (1 << scaling_factor)) >> (scaling_factor - 7);
 
+                    //printf("%d %d %d\n", cr, cg, cb);
+
                     int r = divide(cr, 32, 0) << 5;
                     int g = divide(cg, 32, 0) << 2;
                     int b = divide(cb, 64, 0);
                     int write_color = r | g | b;
 
-                    //printf("%d %d %d\n", cr, cg, cb);
 
                     *VG_ADDR = (y << 7) | x;  		// store into the address IO register
                     *VG_COLOR = write_color;         // store color val POOP
@@ -401,7 +247,7 @@ void main() {
             }
             //printf("\n");
         }
-        int* cameraY = &(camera.y);
+        int* cameraY = &(camy);
         if(-150 < *cameraY || -500 > *cameraY){
             movement = -movement;
             //printf("balls\n"); tf you comment this for?
@@ -409,6 +255,7 @@ void main() {
         *cameraY += movement;
 
         //while(1);
+        break;
 
     }
 
