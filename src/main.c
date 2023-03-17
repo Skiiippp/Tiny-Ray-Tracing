@@ -37,15 +37,18 @@ volatile int * const VG_COLOR = (int *)0x11000140;
 
 //Camera params
 
-vec3 camera          = {0    ,-100    ,0};
+int camx = 0;
+int camy = -100;
+int camz = 0;
+//vec3 camera          = {0    ,-100    ,0};
 
-vec3 ray_dir         = {0    ,0       ,0};
+//vec3 ray_dir         = {0    ,0       ,0};
 
 //Sphere params
 
-vec3 sphere_position = {0    , 0    , 0};
+//vec3 sphere_position = {0    , 0    , 0};
 
-int sphere_pow_2 = 5;
+//int sphere_pow_2 = 5;
 
 int divide(int a, int b, int fraction_bits);
 
@@ -297,6 +300,7 @@ vec3 ray_color(){
 
 void main() {
 
+    int sphere_pow_2 = 5;
     int radius = 1<<sphere_pow_2;
 
     //Render
@@ -311,9 +315,11 @@ void main() {
                 int forward = (image_width);
 
                 //Ray Dir is direction coming out of camera position
-                ray_dir.x = horiz;
-                ray_dir.y = forward;
-                ray_dir.z = vert;
+                int rdx = horiz;
+                int rdy = forward;
+                int rdz = vert;
+
+                itn
 
                 //vec3 color = ray_color();
 
@@ -396,13 +402,8 @@ void main() {
             //printf("\n");
         }
         int* cameraY = &(camera.y);
-<<<<<<< HEAD
         if(-150 < *cameraY || -500 > *cameraY){
             movement = -movement;
-=======
-        if(-100 < *cameraY || -750 > *cameraY){
-            movement = -1 * movement;
->>>>>>> 609a3bc678e7b7f5700263c5c01e94e59f04b223
             //printf("balls\n"); tf you comment this for?
         }
         *cameraY += movement;
