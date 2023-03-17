@@ -26,11 +26,6 @@ typedef struct vec3{
     int z;
 } vec3;
 
-typedef struct ray3{
-    vec3 o;
-    vec3 d;
-} ray3;
-
 //Image params
 
 const int image_width = 80;
@@ -42,6 +37,8 @@ volatile int * const VG_COLOR = (int *)0x11000140;
 //Camera params
 
 vec3 camera          = {0    , -100    , 0};
+
+vec3 ray_dir         = { 0 ,    0,     , 0};
 
 //Sphere params
 
@@ -240,10 +237,10 @@ static int square_root(int a){
     return res;
 }
 
-int hit_sphere(vec3 center, int radius, ray3 r){
-    vec3 oc          = vec3_diff(r.o, center);
-    int a            = vec3_dot(r.d, r.d);
-    int half_b       = vec3_dot(oc, r.d);
+int hit_sphere(vec3 center, int radius){
+    vec3 oc          = vec3_diff(camera, center);
+    int a            = vec3_dot(ray_dir, ray_dir);
+    int half_b       = vec3_dot(oc, ray_dir);
     int c            = vec3_dot(oc, oc) - mult(radius, radius);
     int discriminant = mult(half_b, half_b) - mult(a, c);
 
@@ -257,8 +254,8 @@ int hit_sphere(vec3 center, int radius, ray3 r){
     }
 }
 
-vec3 ray_color(ray3 r){
-    int t = hit_sphere(sphere_position, 1<<sphere_pow_2, r);
+vec3 ray_color(){
+    int t = hit_sphere(sphere_position, 1<<sphere_pow_2);
 
     if(t <= 0){
         vec3 background = {135, 206, 235};
@@ -269,10 +266,8 @@ vec3 ray_color(ray3 r){
     int shift = 10;
 
     vec3 scaled_camera = scale_vec3(camera, 1<<shift);
-    
-    vec3 dir;
-    dir = r.d;
-    vec3 scaled_dir = scale_vec3(dir, t);    // ERROR OCCURS HERE!!!! -- likely accessing nested structs with r.d
+
+    vec3 scaled_dir = scale_vec3(ray_dir, t);    // ERROR OCCURS HERE!!!! -- likely accessing nested structs with r.d
     return circle;
 
     vec3 r_at_t = vec3_sum(scaled_camera, scaled_dir); 
@@ -309,11 +304,9 @@ void main() {
                 int forward = (image_width);
 
                 //Ray Dir is direction coming out of camera position
-                vec3 ray_dir = {horiz, forward, vert};
-                ray3 pixel_ray = {camera, ray_dir};
-
+                ray_dir = {horiz, forward, vert};
                 
-                vec3 color = ray_color(pixel_ray);
+                vec3 color = ray_color();
 
                 write_to_vga(i, image_height - 1 - j, color);
 
