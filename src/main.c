@@ -19,6 +19,7 @@
  */
 
 //#include <stdio.h>
+//#include <assert.h>
 
 typedef struct vec3{
     int x;
@@ -38,9 +39,10 @@ volatile int * const VG_COLOR = (int *)0x11000140;
 
 vec3 camera          = {0    ,-100    ,0};
 
+int finalColor = 1;
 int cr = 0;
 int cg = 0;
-int gb = 0;
+int cb = 0;
 
 vec3 ray_dir         = {0    ,0       ,0};
 
@@ -58,19 +60,25 @@ static void write_to_vga(int x, int y) {
     //*VG_COLOR = 0;//store_color;  // store into the color IO register, which triggers 
     								
 	// 8-bit color, RRR,GGG,BB, so R & G must be scaled by 32, B by 64
-	char r = divide(cr, 32, 0) << 5;
-	char g = divide(cg, 32, 0) << 2;
-	char b = divide(cg, 64, 0);
-	char color_out = r | g | b;
-	
+	int r = divide(cr, 32, 0) << 5;
+	int g = divide(cg, 32, 0) << 2;
+	int b = divide(cg, 64, 0);
+	int finalColor = r | g | b;
+
+    //printf("%i\n", color_out);
+
     //ABOUT TO WRITE
 	// For debugging purposes
-	if(color_out != 0x9b){	// Not background
-		color_out = 0xe0;
-	}
+	//if(color_out != 0x9b){	// Not background
+	//	color_out = 0xe0;
+	//}
+
+    if(finalColor == 155){
+        *VG_COLOR = 155;
+    }
 
 	*VG_ADDR = (y << 7) | x;  		// store into the address IO register
-	*VG_COLOR = color_out;
+	*VG_COLOR = finalColor;         // store color val POOP
 
 	
 }
