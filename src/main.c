@@ -231,9 +231,14 @@ void main() {
                     int cg = (n_z + (1 << scaling_factor)) >> (scaling_factor - 7);
                     int cb = (n_y + (1 << scaling_factor)) >> (scaling_factor - 7);
 
+                    int r = ((cr + cg) >> 6) << 5;
+                    int g = 0;
+                    int b = 0;
+
+                    /*
                     int r = (cr>>5)<<5;
                     int g = (cg>>5)<<2;
-                    int b = (cb>>6);
+                    int b = (cb>>6);*/
                     int write_color = r | g | b;
 
                     //printf("%d %d %d\n", r, g<<3, b<<6);
