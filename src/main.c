@@ -39,11 +39,6 @@ volatile int * const VG_COLOR = (int *)0x11000140;
 
 vec3 camera          = {0    ,-100    ,0};
 
-int finalColor = 1;
-int cr = 0;
-int cg = 0;
-int cb = 0;
-
 vec3 ray_dir         = {0    ,0       ,0};
 
 //Sphere params
@@ -55,15 +50,15 @@ int sphere_pow_2 = 5;
 int divide(int a, int b, int fraction_bits);
 
 // draws a single pixel
-static void write_to_vga(int x, int y) {
+static void write_to_vga(int x, int y, vec3 color) {
     //int store_color = ((color.x>>5)<<5) | ((color.y>>5)<<2) | (color.z>>6);
     //*VG_COLOR = 0;//store_color;  // store into the color IO register, which triggers 
     								
 	// 8-bit color, RRR,GGG,BB, so R & G must be scaled by 32, B by 64
-	int r = divide(cr, 32, 0) << 5;
-	int g = divide(cg, 32, 0) << 2;
-	int b = divide(cb, 64, 0);
-    finalColor = r | g | b;
+	int r = divide(color.x, 32, 0) << 5;
+	int g = divide(color.y, 32, 0) << 2;
+	int b = divide(color.z, 64, 0);
+    int write_color = r | g | b;
 
     //printf("%i\n", color_out);
 
@@ -73,14 +68,8 @@ static void write_to_vga(int x, int y) {
 	//	color_out = 0xe0;
 	//}
 
-    if(finalColor == 155){
-        *VG_COLOR = 155;
-    }else{
-        *VG_COLOR = finalColor;         // store color val POOP
-    }
-
 	*VG_ADDR = (y << 7) | x;  		// store into the address IO register
-	*VG_COLOR = finalColor;         // store color val POOP
+	*VG_COLOR = write_color;         // store color val POOP
 
 	
 }
@@ -268,16 +257,12 @@ int hit_sphere(vec3 center, int radius){
     }
 }
 
-void ray_color(){
+color ray_color(){
     int t = hit_sphere(sphere_position, 1<<sphere_pow_2);
 
     if(t <= 0){
-        cr = 135;
-        cg = 206;
-        cb = 235;
-        return;
-        //vec3 background = {135, 206, 235};
-        //return background;
+        vec3 background = {135, 206, 235};
+        return background;
     } 
     vec3 circle = {255, 0, 0};
     
@@ -297,9 +282,9 @@ void ray_color(){
 
     //vec3 color = {(cr>>5)<<5, (cg>>5)<<5, (cb>>6)<<6};
 
-    //vec3 color = {cr, cg, cb};
+    vec3 color = {cr, cg, cb};
 
-    //return circle; 
+    return circle;
 
     //return color;
     
@@ -327,9 +312,9 @@ void main() {
                 ray_dir.y = forward;
                 ray_dir.z = vert;
                 
-                ray_color();
+                vec3 color = ray_color();
 
-                write_to_vga(i, image_height - 1 - j);
+                write_to_vga(i, image_height - 1 - j, color);
 
                 //if(color.x != 135)
                 //printf("%d %d %d\n", color.x, color.y, color.z);
