@@ -297,7 +297,7 @@ vec3 ray_color(){
 
 void main() {
 
-    int sphere_r = 1<<sphere_pow_2;
+    int radius = 1<<sphere_pow_2;
 
     //Render
 
@@ -315,19 +315,58 @@ void main() {
                 ray_dir.y = forward;
                 ray_dir.z = vert;
                 
-                vec3 color = ray_color();
+                //vec3 color = ray_color();
 
-                write_to_vga(i, image_height - 1 - j, color);
+                //write_to_vga(i, image_height - 1 - j, color);
 
-                //if(color.x != 135)
-                //printf("%d %d %d\n", color.x, color.y, color.z);
+                //---------------------------------------------------------------------
+                vec3 oc          = vec3_diff(camera, sphere_position);
+                int a            = vec3_dot(ray_dir, ray_dir);
+                int half_b       = vec3_dot(oc, ray_dir);
+                int c            = vec3_dot(oc, oc) - mult(radius, radius);
+                int discriminant = mult(half_b, half_b) - mult(a, c);
 
-                
-                /*if(color.x == 135 && color.y == 206 && color.z == 235){
-                    printf(".");
-                } else {
-                    printf("*");
-                }*/
+                int t;
+
+                if(discriminant > 0){ //hit the sphere
+                    int shift = 10;
+
+                    t = divide(-half_b - square_root(discriminant), a, shift);
+                }else{ //did not hit sphere
+                    t = -1;
+                }
+
+                if(t <= 0){
+                    vec3 background = {135, 206, 235};
+                    return background;
+                }
+                vec3 temp = {255, 0, 0};
+
+                int shift = 10;
+
+                vec3 scaled_camera = scale_vec3(camera, 1<<shift);
+                vec3 scaled_dir = scale_vec3(ray_dir, t);
+                vec3 r_at_t = vec3_sum(scaled_camera, scaled_dir);
+                vec3 n = vec3_diff(r_at_t, scale_vec3(sphere_position, 1<<shift));
+
+                int scaling_factor = sphere_pow_2 + shift;
+
+                // ERROR OCCURS HERE!!!! -- likely cr, cg, cb
+                int cr = (n.x + (1<<scaling_factor))>>(scaling_factor - 7);
+                int cg = (n.y + (1<<scaling_factor))>>(scaling_factor - 7);
+                int cb = (n.z + (1<<scaling_factor))>>(scaling_factor - 7);
+
+                int r = divide(cr, 32, 0) << 5;
+                int g = divide(cg, 32, 0) << 2;
+                int b = divide(cb, 64, 0);
+                int write_color = r | g | b;
+
+                int x = i;
+                int y = image_height - 1 - j;
+
+                *VG_ADDR = (y << 7) | x;  		// store into the address IO register
+                *VG_COLOR = write_color;         // store color val POOP
+                //---------------------------------------------------------------------
             
             }
             //printf("\n");
