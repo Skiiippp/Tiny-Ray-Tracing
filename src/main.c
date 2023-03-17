@@ -62,8 +62,8 @@ static void write_to_vga(int x, int y) {
 	// 8-bit color, RRR,GGG,BB, so R & G must be scaled by 32, B by 64
 	int r = divide(cr, 32, 0) << 5;
 	int g = divide(cg, 32, 0) << 2;
-	int b = divide(cg, 64, 0);
-	int finalColor = r | g | b;
+	int b = divide(cb, 64, 0);
+    finalColor = r | g | b;
 
     //printf("%i\n", color_out);
 
@@ -75,6 +75,8 @@ static void write_to_vga(int x, int y) {
 
     if(finalColor == 155){
         *VG_COLOR = 155;
+    }else{
+        *VG_COLOR = finalColor;         // store color val POOP
     }
 
 	*VG_ADDR = (y << 7) | x;  		// store into the address IO register
