@@ -39,7 +39,7 @@ endif
 # When typing 'make' not followed by a rule name, the first rule is followed.  This rule depends on
 # everything, causing all the parts to be built
 
-all: dirs $(BUILD)/mem.txt $(BUILD)/$(PROJECT).dump
+all: dirs $(BUILD)/rt.mem $(BUILD)/$(PROJECT).dump
 
 # how to build a .o file from a .c file
 $(BUILD)/%.o: src/%.c
@@ -75,7 +75,7 @@ $(BUILD)/mem.bin: $(BUILD)/$(PROJECT).elf
 	$(OBJCOPY) -O binary --only-section=.data* --only-section=.text* $< $@
 
 # convert to an ASCII hex file for OTTER memory
-$(BUILD)/mem.txt: $(BUILD)/mem.bin
+$(BUILD)/rt.mem: $(BUILD)/mem.bin
 	hexdump -v -e '"%08x\n"' $< > $@
 
 # make software project folder
