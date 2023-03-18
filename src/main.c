@@ -19,7 +19,7 @@
  */
 
 #include <stdio.h>
-
+//#include <math.h>
 //Image params
 
 const int image_width = 80;
@@ -85,9 +85,8 @@ static int mult(int a, int b){
 static int divide(int a, int b, int fraction_bits){
 
     if (a < 0 && b < 0){
-        int temp = a;
-        a = b;
-        b = temp;
+        a=-a;
+        b=-b;
     }
 
     int res = 0;
@@ -106,7 +105,7 @@ static int divide(int a, int b, int fraction_bits){
     int add = 32768;
 
     while(add > 0) {
-        if (mult(b, res+add) <= a) {
+        if ((b * (res+add)) <= a) {
             res = res + add;
         }
         add>>=1;
@@ -125,7 +124,7 @@ static int square_root(int a){
 
     int add = 16384;
     while(add > 0) {
-        if (mult(res + add, res + add) <= a) {
+        if ((res + add) * (res + add) <= a) {
             res = res + add;
         }
         add>>=1;
@@ -162,33 +161,34 @@ void main() {
                 int ocz = camz - 0;
 
                 int a = 0;
-                a += mult(rdx, rdx);
-                a += mult(rdy, rdy);
-                a += mult(rdz, rdz);
+                a += rdx * rdx;
+                a += rdy * rdy;
+                a += rdz * rdz;
 
                 int half_b = 0;
-                half_b += mult(ocx, rdx);
-                half_b += mult(ocy, rdy);
-                half_b += mult(ocz, rdz);
+                half_b += ocx * rdx;
+                half_b += ocy * rdy;
+                half_b += ocz * rdz;
 
-                int radsq = mult(radius, radius);
+                int radsq = radius * radius;
 
                 int dotoc = 0;
-                dotoc += mult(ocx, ocx);
-                dotoc += mult(ocy, ocy);
-                dotoc += mult(ocz, ocz);
+                dotoc += ocx * ocx;
+                dotoc += ocy * ocy;
+                dotoc += ocz * ocz;
 
                 int c = dotoc - radsq;
 
                 //---------------------------------------------------------------------
-                int discriminant = mult(half_b, half_b) - mult(a, c);
+                int discriminant = half_b * half_b - a * c;
 
                 int t;
 
                 if (discriminant > 0) { //hit the sphere
                     int shift = 10;
-
-                    t = divide(-half_b - square_root(discriminant), a, shift);
+                    int t_a = (-half_b - square_root(discriminant))<<shift;
+                    t = t_a / a;
+                    //t = divide(-half_b - square_root(discriminant), a, shift);
                 } else { //did not hit sphere
                     t = -1;
                 }
@@ -205,12 +205,12 @@ void main() {
                     int shift = 10;
 
                     int sc_cam_x = 0;
-                    int sc_cam_y = mult(camy, 1024);
+                    int sc_cam_y = camy * 1024;
                     int sc_cam_z = 0;
 
-                    int sc_dir_x = mult(rdx, t);
-                    int sc_dir_y = mult(rdy, t);
-                    int sc_dir_z = mult(rdz, t);
+                    int sc_dir_x = rdx * t;
+                    int sc_dir_y = rdy * t;
+                    int sc_dir_z = rdz * t;
 
                     int r_at_t_x = sc_cam_x + sc_dir_x;
                     int r_at_t_y = sc_cam_y + sc_dir_y;
